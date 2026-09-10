@@ -26,7 +26,7 @@ class AstraAccessibilityService : AccessibilityService() {
     private fun walk(node: AccessibilityNodeInfo, all: MutableList<String>, clickable: MutableList<String>, editable: MutableList<String>) {
         val value = (node.text ?: node.contentDescription)?.toString()?.trim().orEmpty()
         if (value.isNotEmpty()) { all += value; if (node.isClickable) clickable += value; if (node.isEditable) editable += value }
-        for (i in 0 until node.childCount) node.getChild(i)?.let { walk(it, all, clickable, editable); it.recycle() }
+        for (i in 0 until node.childCount) node.getChild(i)?.let { child -> walk(child, all, clickable, editable); child.recycle() }
     }
 
     fun clickText(text: String): Boolean {
@@ -61,6 +61,7 @@ class AstraAccessibilityService : AccessibilityService() {
         val ok = node.performAction(if (forward) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)
         node.recycle(); return ok
     }
+
     private fun findScrollable(node: AccessibilityNodeInfo): AccessibilityNodeInfo? {
         if (node.isScrollable) return AccessibilityNodeInfo.obtain(node)
         for (i in 0 until node.childCount) node.getChild(i)?.let { child ->
@@ -68,7 +69,14 @@ class AstraAccessibilityService : AccessibilityService() {
         }
         return null
     }
+
     fun openUrl(url: String): Boolean = runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true }.getOrDefault(false)
+
+    fun openApp(packageName: String): Boolean = runCatching {
+        val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return@runCatching false
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(intent); true
+    }.getOrDefault(false)
+
     fun tap(x: Float, y: Float): Boolean {
         val path = Path().apply { moveTo(x, y) }
         val gesture = android.accessibilityservice.GestureDescription.Builder().addStroke(android.accessibilityservice.GestureDescription.StrokeDescription(path, 0, 80)).build()
