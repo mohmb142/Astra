@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Astra Mobile</string>
+    <string name="accessibility_description">Astra Mobile يحتاج خدمة إمكانية الوصول لفهم عناصر الشاشة وتنفيذ النقر والتمرير والكتابة نيابةً عن المستخدم.</string>
+</resources>
